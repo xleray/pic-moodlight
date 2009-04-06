@@ -65,8 +65,8 @@
 //#define STACK_USE_IP_GLEANING
 //#define STACK_USE_ICMP_SERVER
 //#define STACK_USE_ICMP_CLIENT
-//#define STACK_USE_HTTP_SERVER
-//#define STACK_USE_MPFS
+#define STACK_USE_HTTP_SERVER
+#define STACK_USE_MPFS
 //#define STACK_USE_DHCP_CLIENT
 //#define STACK_USE_DHCP_SERVER
 //#define STACK_USE_FTP_SERVER
@@ -77,12 +77,11 @@
 //#define STACK_USE_GENERIC_TCP_SERVER_EXAMPLE	// ToUpper server example in GenericTCPServer.c
 //#define STACK_USE_TELNET_SERVER			// Telnet server
 //#define STACK_USE_ANNOUNCE				// Microchip Embedded Ethernet Device Discoverer server/client
-#define STACK_USE_DNS					// Domain Name Service Client
+//#define STACK_USE_DNS					// Domain Name Service Client
 //#define STACK_USE_NBNS					// NetBIOS Name Service Server
 //#define STACK_USE_REBOOT_SERVER			// Module for resetting this PIC remotely.  Primarily useful for a Bootloader.
 //#define STACK_USE_UDP_PERFORMANCE_TEST	// Module for testing UDP TX performance characteristics.  NOTE: Enabling this will cause a huge amount of UDP broadcast packets to flood your network on various ports.  Use care when enabling this on production networks, especially with VPNs (could tunnel broadcast traffic across a limited bandwidth connection).
 //#define STACK_USE_TCP_PERFORMANCE_TEST	// Module for testing TCP TX performance characteristics
-#define STACK_USE_HTTP_TWITTER_POST
 
 #if defined(OLIMEX_MAXI)
 	#define STACK_USE_UART
@@ -242,8 +241,7 @@
 	defined(STACK_USE_GENERIC_TCP_CLIENT_EXAMPLE) || \
 	defined(STACK_USE_TFTP_CLIENT) || \
 	defined(STACK_USE_SMTP_CLIENT) || \
-	defined(STACK_USE_ICMP_CLIENT) || \
-	defined(STACK_USE_HTTP_TWITTER_POST)
+	defined(STACK_USE_ICMP_CLIENT)
 	#if !defined(STACK_CLIENT_MODE)
 	    #define STACK_CLIENT_MODE
 	#endif
@@ -257,8 +255,7 @@
 	defined(STACK_USE_GENERIC_TCP_CLIENT_EXAMPLE) || \
 	defined(STACK_USE_GENERIC_TCP_SERVER_EXAMPLE) || \
 	defined(STACK_USE_SMTP_CLIENT) || \
-	defined(STACK_USE_TCP_PERFORMANCE_TEST) || \
-	defined(STACK_USE_HTTP_TWITTER_POST)
+	defined(STACK_USE_TCP_PERFORMANCE_TEST)
     #if !defined(STACK_USE_TCP)
         #define STACK_USE_TCP
     #endif

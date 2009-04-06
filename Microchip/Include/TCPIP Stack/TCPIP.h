@@ -159,8 +159,4 @@
 	#include "TCPIP Stack/TCPPerformanceTest.h"
 #endif
 
-#if defined(STACK_USE_HTTP_TWITTER_POST)
-	#include "httpTwitterPost.h"
-#endif
-
 #endif
