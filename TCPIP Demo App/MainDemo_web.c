@@ -164,10 +164,10 @@ static void InitAppConfig(void);
 static void InitializeBoard(void);
 static void ProcessIO(void);
 #if defined(STACK_USE_SMTP_CLIENT)
-static void SMTPDemo(void);
+	static void SMTPDemo(void);
 #endif
 #if defined(STACK_USE_ICMP_CLIENT)
-static void PingDemo(void);
+	static void PingDemo(void);
 #endif
 
 static void DisplayIPValue(IP_ADDR IPVal);
@@ -839,11 +839,24 @@ static void PingDemo(void)
 }
 #endif	//#if defined(STACK_USE_ICMP_CLIENT)
 
+#if defined(STACK_USE_LED_BOARDS)
+	signed int Char2Num(unsigned char c)
+	{
+	   if (c < '0') return -1;
+	   if (c <= '9') return c - '0';
+	   if (c < 'A') return -1;
+	   if (c <= 'F') return c - 'A' + 10;
+	   if (c < 'a') return -1;
+	   if (c <= 'f') return c - 'a' + 10;
+	   return -1;
+	}
+#endif 
 
 // CGI Command Codes
 #define CGI_CMD_DIGOUT      (0)
 #define CGI_CMD_LCDOUT      (1)
 #define CGI_CMD_RECONFIG	(2)
+#define CGI_CMD_LEDOUT      (3)
 
 // CGI Variable codes. - There could be 00h-FFh variables.
 // NOTE: When specifying variables in your dynamic pages (.cgi),
@@ -931,11 +944,12 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 {
     BYTE command;
     BYTE var;
-#if defined(ENABLE_REMOTE_CONFIG)
-	DWORD_VAL dwVal;
-    BYTE CurrentArg;
-    WORD_VAL TmpWord;
-#endif
+	#if defined(ENABLE_REMOTE_CONFIG)
+		DWORD_VAL dwVal;
+	    BYTE CurrentArg;
+	    WORD_VAL TmpWord;
+	#endif
+	BYTE x, y, c;
     /*
      * Design your pages such that they contain command code
      * as a one character numerical value.
@@ -967,117 +981,182 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 
          memcpypgm2ram((void*)argv[0], (ROM void*)COMMANDS_OK_PAGE, COMMANDS_OK_PAGE_LEN);
          break;
-#if defined(USE_LCD)
-    case CGI_CMD_LCDOUT:	// ACTION=1
-		if(argc > 2u)	// Text provided in argv[2]
-		{
-			// Convert %20 to spaces, and other URL transformations
-			UnencodeURL(argv[2]);
 
-			// Write 32 received characters or less to LCDText
-			if(strlen((char*)argv[2]) < 32u)
+	#if defined(USE_LCD)
+	    case CGI_CMD_LCDOUT:	// ACTION=1
+			if(argc > 2u)	// Text provided in argv[2]
 			{
-				memset(LCDText, ' ', 32);
-				strcpy((char*)LCDText, (char*)argv[2]);
-			}
-			else
-			{
-				memcpy(LCDText, (void*)argv[2], 32);
-			}
-
-			// Write LCDText to the LCD
-			LCDUpdate();
-		}
-		else			// No text provided
-		{
-			LCDErase();
-		}
-		memcpypgm2ram((void*)argv[0], (ROM void*)COMMANDS_OK_PAGE, COMMANDS_OK_PAGE_LEN);
-        break;
-#endif
-#if defined(ENABLE_REMOTE_CONFIG)
-// Possibly useful code for remotely reconfiguring the board through 
-// HTTP
-	case CGI_CMD_RECONFIG:	// ACTION=2
-		// Loop through all variables that we've been given
-		CurrentArg = 1;
-		while(argc > CurrentArg)
-		{
-			// Get the variable identifier (HTML "name"), and 
-			// increment to the variable's value
-			TmpWord.byte.MSB = argv[CurrentArg][0];
-			TmpWord.byte.LSB = argv[CurrentArg++][1];
-	        var = hexatob(TmpWord);
-	        
-	        // Make sure the variable's value exists
-	        if(CurrentArg >= argc)
-	        	break;
-	        
-	        // Take action with this variable/value
-	        switch(var)
-	        {
-	        case VAR_IP_ADDRESS:
-	        case VAR_SUBNET_MASK:
-	        case VAR_GATEWAY_ADDRESS:
-	        	{
-		        	// Convert the returned value to the 4 octect 
-		        	// binary representation
-			        if(!StringToIPAddress(argv[CurrentArg], (IP_ADDR*)&dwVal))
-			        	break;
-
-					// Reconfigure the App to use the new values
-			        if(var == VAR_IP_ADDRESS)
-			        {
-				        // Cause the IP address to be rebroadcast
-				        // through Announce.c or the RS232 port since
-				        // we now have a new IP address
-				        if(dwVal.Val != *(DWORD*)&AppConfig.MyIPAddr)
-					        DHCPBindCount++;
-					    
-					    // Set the new address
-			        	memcpy((void*)&AppConfig.MyIPAddr, (void*)&dwVal, sizeof(AppConfig.MyIPAddr));
-			        }
-			        else if(var == VAR_SUBNET_MASK)
-			        	memcpy((void*)&AppConfig.MyMask, (void*)&dwVal, sizeof(AppConfig.MyMask));
-			        else if(var == VAR_GATEWAY_ADDRESS)
-			        	memcpy((void*)&AppConfig.MyGateway, (void*)&dwVal, sizeof(AppConfig.MyGateway));
-		        }
-	            break;
+				// Convert %20 to spaces, and other URL transformations
+				UnencodeURL(argv[2]);
 	
-	        case VAR_DHCP:
-	        	if(AppConfig.Flags.bIsDHCPEnabled)
-	        	{
-		        	if(!(argv[CurrentArg][0]-'0'))
-		        	{
-		        		AppConfig.Flags.bIsDHCPEnabled = FALSE;
-		        	}
-		        }
-		        else
-	        	{
-		        	if(argv[CurrentArg][0]-'0')
-		        	{
-						AppConfig.MyIPAddr.Val = 0x00000000ul;
-		        		AppConfig.Flags.bIsDHCPEnabled = TRUE;
-				        AppConfig.Flags.bInConfigMode = TRUE;
-			        	DHCPReset();
-		        	}
-		        }
-	            break;
-	    	}
+				// Write 32 received characters or less to LCDText
+				if(strlen((char*)argv[2]) < 32u)
+				{
+					memset(LCDText, ' ', 32);
+					strcpy((char*)LCDText, (char*)argv[2]);
+				}
+				else
+				{
+					memcpy(LCDText, (void*)argv[2], 32);
+				}
+	
+				// Write LCDText to the LCD
+				LCDUpdate();
+			}
+			else			// No text provided
+			{
+				LCDErase();
+			}
+			memcpypgm2ram((void*)argv[0], (ROM void*)COMMANDS_OK_PAGE, COMMANDS_OK_PAGE_LEN);
+	        break;
+	#endif
 
-			// Advance to the next variable (if present)
-			CurrentArg++;	
-        }
+	#if defined(ENABLE_REMOTE_CONFIG)
+	// Possibly useful code for remotely reconfiguring the board through 
+	// HTTP
+		case CGI_CMD_RECONFIG:	// ACTION=2
+			// Loop through all variables that we've been given
+			CurrentArg = 1;
+			while(argc > CurrentArg)
+			{
+				// Get the variable identifier (HTML "name"), and 
+				// increment to the variable's value
+				TmpWord.byte.MSB = argv[CurrentArg][0];
+				TmpWord.byte.LSB = argv[CurrentArg++][1];
+		        var = hexatob(TmpWord);
+		        
+		        // Make sure the variable's value exists
+		        if(CurrentArg >= argc)
+		        	break;
+		        
+		        // Take action with this variable/value
+		        switch(var)
+		        {
+		        case VAR_IP_ADDRESS:
+		        case VAR_SUBNET_MASK:
+		        case VAR_GATEWAY_ADDRESS:
+		        	{
+			        	// Convert the returned value to the 4 octect 
+			        	// binary representation
+				        if(!StringToIPAddress(argv[CurrentArg], (IP_ADDR*)&dwVal))
+				        	break;
+	
+						// Reconfigure the App to use the new values
+				        if(var == VAR_IP_ADDRESS)
+				        {
+					        // Cause the IP address to be rebroadcast
+					        // through Announce.c or the RS232 port since
+					        // we now have a new IP address
+					        if(dwVal.Val != *(DWORD*)&AppConfig.MyIPAddr)
+						        DHCPBindCount++;
+						    
+						    // Set the new address
+				        	memcpy((void*)&AppConfig.MyIPAddr, (void*)&dwVal, sizeof(AppConfig.MyIPAddr));
+				        }
+				        else if(var == VAR_SUBNET_MASK)
+				        	memcpy((void*)&AppConfig.MyMask, (void*)&dwVal, sizeof(AppConfig.MyMask));
+				        else if(var == VAR_GATEWAY_ADDRESS)
+				        	memcpy((void*)&AppConfig.MyGateway, (void*)&dwVal, sizeof(AppConfig.MyGateway));
+			        }
+		            break;
 		
-		// Save any changes to non-volatile memory
-      	SaveAppConfig();
+		        case VAR_DHCP:
+		        	if(AppConfig.Flags.bIsDHCPEnabled)
+		        	{
+			        	if(!(argv[CurrentArg][0]-'0'))
+			        	{
+			        		AppConfig.Flags.bIsDHCPEnabled = FALSE;
+			        	}
+			        }
+			        else
+		        	{
+			        	if(argv[CurrentArg][0]-'0')
+			        	{
+							AppConfig.MyIPAddr.Val = 0x00000000ul;
+			        		AppConfig.Flags.bIsDHCPEnabled = TRUE;
+					        AppConfig.Flags.bInConfigMode = TRUE;
+				        	DHCPReset();
+			        	}
+			        }
+		            break;
+		    	}
+	
+				// Advance to the next variable (if present)
+				CurrentArg++;	
+	        }
+			
+			// Save any changes to non-volatile memory
+	      	SaveAppConfig();
+	
+	
+			// Return the same CONFIG.CGI file as a result.
+	        memcpypgm2ram((void*)argv[0],
+	             (ROM void*)CONFIG_UPDATE_PAGE, CONFIG_UPDATE_PAGE_LEN);
+			break;
+	#endif
+	
+	#if defined(STACK_USE_LED_BOARDS)
+	    case CGI_CMD_LEDOUT:	// ACTION=3
+			if(argc > 2u)	// Text provided in argv[2]
+			{
+				if(strlen((char*)argv[2]) < 32u)
+				{
+					//putsUART((char*)argv[2]);
+					c = 0;
+					while(argv[2][c] != '\0')
+					{  // Transmit a byte
+						while(BusyUSART()); putcUART(argv[2][c]);
+						c++;
+					};
+					switch((BYTE)argv[2][0] >> 4)
+    				{
+    					case 1:
+							//c = (BYTE)argv[2][7];
+							ledValue[1][1][0] = Char2Num(argv[2][1]);
+							ledValue[1][1][1] = Char2Num(argv[2][2]);
+							ledValue[1][1][2] = Char2Num(argv[2][3]);
+							ledValue[2][1][0] = Char2Num(argv[2][4]);
+							ledValue[2][1][1] = Char2Num(argv[2][5]);
+							ledValue[2][1][2] = Char2Num(argv[2][6]);
+							ledValue[1][2][0] = Char2Num(argv[2][7]);
+							ledValue[1][2][1] = Char2Num(argv[2][8]);
+							ledValue[1][2][2] = Char2Num(argv[2][9]);
+							ledValue[2][2][0] = Char2Num(argv[2][10]);
+							ledValue[2][2][1] = Char2Num(argv[2][11]);
+							ledValue[2][2][2] = Char2Num(argv[2][12]);
+				        break;
 
+    					case 2:
+							for (y=0; y<4; y++)
+							{
+								for (x=0; x<4; x++)
+								{
+									ledValue[x][y][0] = Char2Num(argv[2][1]);
+									ledValue[x][y][1] = Char2Num(argv[2][2]);
+									ledValue[x][y][2] = Char2Num(argv[2][3]);
+								}
+							}
+				        break;
+						
+						/* Cannot include the 6-bit update for lack of space
+    					case 8:
+				        break;
 
-		// Return the same CONFIG.CGI file as a result.
-        memcpypgm2ram((void*)argv[0],
-             (ROM void*)CONFIG_UPDATE_PAGE, CONFIG_UPDATE_PAGE_LEN);
-		break;
-#endif
+    					case 9:
+				        break;
+						*/
+					}
+				}
+				else
+				{
+					putcUART(0x10);
+					putcUART(0x00);
+					putcUART(0xFF);
+				}
+			}
+			memcpypgm2ram((void*)argv[0], (ROM void*)COMMANDS_OK_PAGE, COMMANDS_OK_PAGE_LEN);
+	        break;
+	#endif
 
     default:
 		memcpypgm2ram((void*)argv[0], (ROM void*)COMMANDS_OK_PAGE, COMMANDS_OK_PAGE_LEN);
@@ -1199,37 +1278,6 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
             return HTTP_END_OF_VAR;
         return ref;
 
-#if defined(STACK_USE_LED_BOARDS)
-	case VAR_LEDVALUES:
-        if(ref == HTTP_START_OF_VAR)
-		{
-			VarString[0] = '\0';
-			for (y=0; y<4; y++)
-			{
-				for (x=0; x<4; x++)
-				{
-					for (c = 0; c<3; c++)
-					{
-						//uitoa(ledValue[x][y][c], colorDigit);
-						//strcat(VarString, colorDigit);
-						sprintf(VarString, "%s%#X", VarString,	ledValue[x][y][c]);
-						if (c != 2) 
-							sprintf(VarString, "%s,", VarString);
-					}
-					if (x != 3) 
-						sprintf(VarString, "%s ", VarString);
-				}
-				sprintf(VarString, "%s/n", VarString);
-			}
-		}
-        *val = VarString[(BYTE)ref];
-        if(VarString[(BYTE)ref] == '\0')
-            return HTTP_END_OF_VAR;
-		else if(VarString[(BYTE)++ref] == '\0' )
-            return HTTP_END_OF_VAR;
-        return ref;
-#endif
-
 #if defined(ENABLE_REMOTE_CONFIG)
     case VAR_MAC_ADDRESS:
         if ( ref == HTTP_START_OF_VAR )
@@ -1315,6 +1363,37 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
         if ( (BYTE)++ref == VarStringLen )
             return HTTP_END_OF_VAR;
 
+        return ref;
+#endif
+
+#if defined(STACK_USE_LED_BOARDS)
+	case VAR_LEDVALUES:
+        if(ref == HTTP_START_OF_VAR)
+		{
+			VarString[0] = '\0';
+			for (y=0; y<4; y++)
+			{
+				for (x=0; x<4; x++)
+				{
+					for (c = 0; c<3; c++)
+					{
+						//uitoa(ledValue[x][y][c], colorDigit);
+						//strcat(VarString, colorDigit);
+						sprintf(VarString, "%s%#X", VarString,	ledValue[x][y][c]);
+						if (c != 2) 
+							sprintf(VarString, "%s,", VarString);
+					}
+					if (x != 3) 
+						sprintf(VarString, "%s ", VarString);
+				}
+				sprintf(VarString, "%s/n", VarString);
+			}
+		}
+        *val = VarString[(BYTE)ref];
+        if(VarString[(BYTE)ref] == '\0')
+            return HTTP_END_OF_VAR;
+		else if(VarString[(BYTE)++ref] == '\0' )
+            return HTTP_END_OF_VAR;
         return ref;
 #endif
     }
@@ -1612,10 +1691,12 @@ static void SetConfig(void)
 	    DisplayIPValue(AppConfig.PrimaryDNSServer);
 		putrsUART("\r\n\t7: Change static secondary DNS server:\t");
 	    DisplayIPValue(AppConfig.SecondaryDNSServer);
-	    putrsUART("\r\n\t8: ");
-		putrsUART((ROM BYTE*)(AppConfig.Flags.bIsDHCPEnabled ? "Dis" : "En"));
-		putrsUART("able DHCP & IP Gleaning:\t\tDHCP is currently ");
-		putrsUART((ROM BYTE*)(AppConfig.Flags.bIsDHCPEnabled ? "enabled" : "disabled"));
+		#if defined(STACK_USE_DHCP_CLIENT) || defined(STACK_USE_DHCP_SERVER)
+			putrsUART("\r\n\t8: ");
+			putrsUART((ROM BYTE*)(AppConfig.Flags.bIsDHCPEnabled ? "Dis" : "En"));
+			putrsUART("able DHCP & IP Gleaning:\t\tDHCP is currently ");
+			putrsUART((ROM BYTE*)(AppConfig.Flags.bIsDHCPEnabled ? "enabled" : "disabled"));
+		#endif
 	    putrsUART("\r\n\t9: Download MPFS image.");
 	    putrsUART("\r\n\t0: Save & Quit.");
 	    putrsUART("\r\nEnter a menu choice: ");
@@ -1629,51 +1710,51 @@ static void SetConfig(void)
 		// Execute the user selection
 	    switch(ReadUART())
 	    {
-		    // Ivan - test code here
-		    case 'T':
-				#if defined(__DEBUG)
-			    	putrsUART("Put extension header and press any key");
-			    	while(!DataRdyUART());
-			    	putrsUART("\r\n");
-			    	switch(TestExt())
-			    	{
-				    	case TEST_OK:
-				    		putrsUART("Extension OK");
-				    		LED0_TRIS = 0;
-				    		LED0_IO = 1;
-				    		
-				    		//InitRTC();
-				    		// test OK, Lit the LED
-				    		while (1);
-				    		break;
-				    	case TEST_GND:
-				    		putrsUART("Pin to GND!!!!!!!!!");
-				    		break;
-				    	case TEST_VCC:
-				    		putrsUART("Pin to VCC!!!!!!!!!");
-				    		break;
-				    	case TEST_ZERO_A:
-				    		putrsUART("Short on PORT A!!!!!!!");
-				    		break;
-				    	case TEST_ZERO_C:
-				    		putrsUART("Short on PORT C!!!!!!!");
-				    		break;
-				    	case TEST_ZERO_D:
-				    		putrsUART("Short on PORT D!!!!!!!");
-				    		break;
-				    	case TEST_ZERO_E:
-				    		putrsUART("Short on PORT E!!!!!!!");
-				    		break;
-				    	case TEST_RTC:
-				    		putrsUART("RTC fault");
-				    		break;			    	
+			#if defined(__DEBUG)
+			    // Ivan - test code here
+			    case 'T':
+				    putrsUART("Put extension header and press any key");
+				    while(!DataRdyUART());
+				    putrsUART("\r\n");
+				    switch(TestExt())
+				    {
+					   	case TEST_OK:
+					   		putrsUART("Extension OK");
+					   		LED0_TRIS = 0;
+					   		LED0_IO = 1;
+					   		
+					   		//InitRTC();
+					   		// test OK, Lit the LED
+					   		while (1);
+					   		break;
+					   	case TEST_GND:
+					   		putrsUART("Pin to GND!!!!!!!!!");
+					   		break;
+					   	case TEST_VCC:
+					   		putrsUART("Pin to VCC!!!!!!!!!");
+					   		break;
+					   	case TEST_ZERO_A:
+					   		putrsUART("Short on PORT A!!!!!!!");
+					   		break;
+					   	case TEST_ZERO_C:
+					   		putrsUART("Short on PORT C!!!!!!!");
+					   		break;
+					   	case TEST_ZERO_D:
+					   		putrsUART("Short on PORT D!!!!!!!");
+					   		break;
+					   	case TEST_ZERO_E:
+					   		putrsUART("Short on PORT E!!!!!!!");
+					   		break;
+					   	case TEST_RTC:
+					   		putrsUART("RTC fault");
+					   		break;			    	
 						}
 						// test fault - do nothing
 						LED0_TRIS = 0;
 						LED0_IO = 0;
 						while(1);
-					#endif
 					break;
+				#endif
 							    	
 		    case '1':
 				putrsUART("New setting: ");
@@ -1726,9 +1807,12 @@ ReadIPConfig:
 
 		        break;
 		
-		
 		    case '8':
-		        AppConfig.Flags.bIsDHCPEnabled = !AppConfig.Flags.bIsDHCPEnabled;
+				#if defined(STACK_USE_DHCP_CLIENT) || defined(STACK_USE_DHCP_SERVER)
+		        	AppConfig.Flags.bIsDHCPEnabled = !AppConfig.Flags.bIsDHCPEnabled;
+				#else
+					//putrsUART("DCHP client and server are disabled in firmware.\r\n");
+				#endif
 		        break;
 		
 		    case '9':
