@@ -887,13 +887,20 @@ static void PingDemo(void)
 #define VAR_DHCP	        (0x0B)	// Use this variable when the web page is updating us
 #define VAR_DHCP_TRUE       (0x0B)	// Use this variable when we are generating the web page
 #define VAR_DHCP_FALSE      (0x0C)	// Use this variable when we are generating the web page
-#define VAR_LEDVALUES		(0x20)  // LED Values
+#define VAR_LEDVALUES0		(0x20)  // LED Values for Board 0
+#define VAR_LEDVALUES1		(0x21)  // LED Values for Board 1
+#define VAR_LEDVALUES2		(0x22)  // LED Values for Board 2
+#define VAR_LEDVALUES3		(0x23)  // LED Values for Board 3
 
 
 // CGI Command codes (CGI_CMD_DIGOUT).
 // Should be a one digit numerical value
 #define CMD_LED1			(0x0)
 #define CMD_LED2			(0x1)
+#define CMD_LEDOUT0			(0x0)
+#define CMD_LEDOUT1			(0x1)
+#define CMD_LEDOUT2			(0x2)
+#define CMD_LEDOUT3			(0x3)
 
 
 /*********************************************************************
@@ -949,7 +956,7 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 	    BYTE CurrentArg;
 	    WORD_VAL TmpWord;
 	#endif
-	BYTE x, y, c;
+	BYTE x, y, c, boardLEDx, boardLEDy;
     /*
      * Design your pages such that they contain command code
      * as a one character numerical value.
@@ -1099,37 +1106,54 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 	    case CGI_CMD_LEDOUT:	// ACTION=3
 			if(argc > 2u)	// Text provided in argv[2]
 			{
+				//putsUART((char*)argv[2]);
+				c = 0;
+				while(argv[2][c] != '\0')
+				{  // Transmit a byte
+					while(BusyUSART());
+					putcUART((Char2Num(argv[2][c])<<4)+Char2Num(argv[2][c+1]));
+					c=c+2;
+				};
 				if(strlen((char*)argv[2]) < 32u)
 				{
-					//putsUART((char*)argv[2]);
-					c = 0;
-					while(argv[2][c] != '\0')
-					{  // Transmit a byte
-						while(BusyUSART()); putcUART(argv[2][c]);
-						c++;
-					};
-					switch((BYTE)argv[2][0] >> 4)
+					var = argv[1][0] - '0';
+			        switch(var)
+			        {
+				        case CMD_LEDOUT0:
+							boardLEDx = 0; boardLEDy = 0;
+					    break;
+				        case CMD_LEDOUT1:
+							boardLEDx = 2; boardLEDy = 0;
+					    break;
+				        case CMD_LEDOUT2:
+							boardLEDx = 0; boardLEDy = 2;
+					    break;
+				        case CMD_LEDOUT3:
+							boardLEDx = 2; boardLEDy = 2;
+					    break;
+					}
+					switch(Char2Num(argv[2][0]))
     				{
     					case 1:
 							//c = (BYTE)argv[2][7];
-							ledValue[1][1][0] = Char2Num(argv[2][1]);
-							ledValue[1][1][1] = Char2Num(argv[2][2]);
-							ledValue[1][1][2] = Char2Num(argv[2][3]);
-							ledValue[2][1][0] = Char2Num(argv[2][4]);
-							ledValue[2][1][1] = Char2Num(argv[2][5]);
-							ledValue[2][1][2] = Char2Num(argv[2][6]);
-							ledValue[1][2][0] = Char2Num(argv[2][7]);
-							ledValue[1][2][1] = Char2Num(argv[2][8]);
-							ledValue[1][2][2] = Char2Num(argv[2][9]);
-							ledValue[2][2][0] = Char2Num(argv[2][10]);
-							ledValue[2][2][1] = Char2Num(argv[2][11]);
-							ledValue[2][2][2] = Char2Num(argv[2][12]);
+							ledValue[boardLEDx][boardLEDy][0] = Char2Num(argv[2][2]);
+							ledValue[boardLEDx][boardLEDy][1] = Char2Num(argv[2][3]);
+							ledValue[boardLEDx][boardLEDy][2] = Char2Num(argv[2][4]);
+							ledValue[boardLEDx+1][boardLEDy][0] = Char2Num(argv[2][5]);
+							ledValue[boardLEDx+1][boardLEDy][1] = Char2Num(argv[2][6]);
+							ledValue[boardLEDx+1][boardLEDy][2] = Char2Num(argv[2][7]);
+							ledValue[boardLEDx][boardLEDy+1][0] = Char2Num(argv[2][8]);
+							ledValue[boardLEDx][boardLEDy+1][1] = Char2Num(argv[2][9]);
+							ledValue[boardLEDx][boardLEDy+1][2] = Char2Num(argv[2][10]);
+							ledValue[boardLEDx+1][boardLEDy+1][0] = Char2Num(argv[2][11]);
+							ledValue[boardLEDx+1][boardLEDy+1][1] = Char2Num(argv[2][12]);
+							ledValue[boardLEDx+1][boardLEDy+1][2] = Char2Num(argv[2][13]);
 				        break;
 
     					case 2:
-							for (y=0; y<4; y++)
+							for (y=boardLEDy; y<boardLEDy+2; y++)
 							{
-								for (x=0; x<4; x++)
+								for (x=boardLEDx; x<boardLEDx+2; x++)
 								{
 									ledValue[x][y][0] = Char2Num(argv[2][1]);
 									ledValue[x][y][1] = Char2Num(argv[2][2]);
@@ -1137,14 +1161,6 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 								}
 							}
 				        break;
-						
-						/* Cannot include the 6-bit update for lack of space
-    					case 8:
-				        break;
-
-    					case 9:
-				        break;
-						*/
 					}
 				}
 				else
@@ -1224,7 +1240,7 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
 	BYTE i;
 	BYTE *DataSource;
 #endif
-	BYTE x, y, c;
+	BYTE x, y, xMin, xMax, yMin, yMax, c, nibble;
 	BYTE colorDigit[4];
 	
 	// Identify variable
@@ -1367,26 +1383,46 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
 #endif
 
 #if defined(STACK_USE_LED_BOARDS)
-	case VAR_LEDVALUES:
+	case VAR_LEDVALUES0:
+	case VAR_LEDVALUES1:
+	case VAR_LEDVALUES2:
+	case VAR_LEDVALUES3:
         if(ref == HTTP_START_OF_VAR)
 		{
+			if (var == VAR_LEDVALUES0) {
+				xMin = 0; xMax = 2;
+				yMin = 0; yMax = 2;
+			} else if (var == VAR_LEDVALUES1) {
+				xMin = 2; xMax = 4;
+				yMin = 0; yMax = 2;
+			} else if (var == VAR_LEDVALUES2) {
+				xMin = 0; xMax = 2;
+				yMin = 2; yMax = 4;
+			} else if (var == VAR_LEDVALUES3) {
+				xMin = 2; xMax = 4;
+				yMin = 2; yMax = 4;
+			}
 			VarString[0] = '\0';
-			for (y=0; y<4; y++)
+			for (y=yMin; y<yMax; y++)
 			{
-				for (x=0; x<4; x++)
+				for (x=xMin; x<xMax; x++)
 				{
 					for (c = 0; c<3; c++)
 					{
 						//uitoa(ledValue[x][y][c], colorDigit);
-						//strcat(VarString, colorDigit);
-						sprintf(VarString, "%s%#X", VarString,	ledValue[x][y][c]);
-						if (c != 2) 
-							sprintf(VarString, "%s,", VarString);
+						nibble = ledValue[x][y][c] >> 4;
+						colorDigit[0] = ((nibble < 10) ? ('0' + nibble) : ('A' + nibble - 10));
+						nibble = ledValue[x][y][c] & 0x0F;
+						colorDigit[1] = ((nibble < 10) ? ('0' + nibble) : ('A' + nibble - 10));
+						colorDigit[2] = '\0';
+						strcat(VarString, colorDigit);
+						if (c != 2)
+							strcatpgm2ram(VarString, (rom char *)",\0");
 					}
-					if (x != 3) 
-						sprintf(VarString, "%s ", VarString);
+					if (x != 3)
+						strcatpgm2ram(VarString, (rom char *)" \0");
 				}
-				sprintf(VarString, "%s/n", VarString);
+				strcatpgm2ram(VarString, (rom char *)"<BR>\0");
 			}
 		}
         *val = VarString[(BYTE)ref];
