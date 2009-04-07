@@ -897,10 +897,11 @@ static void PingDemo(void)
 // Should be a one digit numerical value
 #define CMD_LED1			(0x0)
 #define CMD_LED2			(0x1)
-#define CMD_LEDOUT0			(0x0)
-#define CMD_LEDOUT1			(0x1)
-#define CMD_LEDOUT2			(0x2)
-#define CMD_LEDOUT3			(0x3)
+#define CMD_LEDOUT1			(0x01)
+#define CMD_LEDOUT2			(0x02)
+#define CMD_LEDOUT3			(0x03)
+#define CMD_LEDOUT4			(0x04)
+#define CMD_LEDOUTALL		(0xFF)
 
 
 /*********************************************************************
@@ -1095,7 +1096,6 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 			// Save any changes to non-volatile memory
 	      	SaveAppConfig();
 	
-	
 			// Return the same CONFIG.CGI file as a result.
 	        memcpypgm2ram((void*)argv[0],
 	             (ROM void*)CONFIG_UPDATE_PAGE, CONFIG_UPDATE_PAGE_LEN);
@@ -1106,6 +1106,7 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 	    case CGI_CMD_LEDOUT:	// ACTION=3
 			if(argc > 2u)	// Text provided in argv[2]
 			{
+				var = 0;
 				//putsUART((char*)argv[2]);
 				c = 0;
 				while(argv[2][c] != '\0')
@@ -1114,28 +1115,56 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 					putcUART((Char2Num(argv[2][c])<<4)+Char2Num(argv[2][c+1]));
 					c=c+2;
 				};
+
 				if(strlen((char*)argv[2]) < 32u)
 				{
-					var = argv[1][0] - '0';
-			        switch(var)
-			        {
-				        case CMD_LEDOUT0:
-							boardLEDx = 0; boardLEDy = 0;
-					    break;
-				        case CMD_LEDOUT1:
-							boardLEDx = 2; boardLEDy = 0;
-					    break;
-				        case CMD_LEDOUT2:
-							boardLEDx = 0; boardLEDy = 2;
-					    break;
-				        case CMD_LEDOUT3:
-							boardLEDx = 2; boardLEDy = 2;
-					    break;
-					}
 					switch(Char2Num(argv[2][0]))
     				{
     					case 1:
-							//c = (BYTE)argv[2][7];
+							var = (Char2Num(argv[2][14]) << 4) + Char2Num(argv[2][15]);
+						break;
+    					case 2:
+							var = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]);
+						break;
+    					case 8:
+							var = (Char2Num(argv[2][26]) << 4) + Char2Num(argv[2][27]);
+						break;
+    					case 9:
+							var = (Char2Num(argv[2][8]) << 4) + Char2Num(argv[2][9]);
+						break;
+					}
+
+					switch(var)
+					{
+						case CMD_LEDOUT1:
+							boardLEDx = 0; boardLEDy = 0;
+						break;
+						case CMD_LEDOUT2:
+							boardLEDx = 2; boardLEDy = 0;
+						break;
+						case CMD_LEDOUT3:
+							boardLEDx = 0; boardLEDy = 2;
+						break;
+						case CMD_LEDOUT4:
+							boardLEDx = 2; boardLEDy = 2;
+						break;
+						case CMD_LEDOUTALL:
+							boardLEDx = 0; boardLEDy = 0;
+						break;
+					}
+
+					switch(Char2Num(argv[2][0]))
+    				{
+    					case 1:
+							/*Update individual LEDs using 4-bit exponential update
+								Byte 1, Nibble 1 = led1Red;   Byte 1, Nibble 2 = led1Green
+								Byte 2, Nibble 1 = led1Blue;  Byte 2, Nibble 2 = led2Red
+								Byte 3, Nibble 1 = led2Green; Byte 3, Nibble 2 = led2Blue
+								Byte 4, Nibble 1 = led3Red;   Byte 4, Nibble 2 = led3Green
+								Byte 5, Nibble 1 = led3Blue;  Byte 5, Nibble 2 = led4Red
+								Byte 6, Nibble 1 = led4Green; Byte 6, Nibble 2 = led4Blue
+								Byte 7 = theAddress
+							*/
 							ledValue[boardLEDx][boardLEDy][0] = Char2Num(argv[2][2]);
 							ledValue[boardLEDx][boardLEDy][1] = Char2Num(argv[2][3]);
 							ledValue[boardLEDx][boardLEDy][2] = Char2Num(argv[2][4]);
@@ -1151,6 +1180,12 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 				        break;
 
     					case 2:
+							/*Update all LEDs using 4-bit exponential update
+								Byte 0, Nibble 2 = led1Red = led2Red = led3Red = led4Red
+								Byte 1, Nibble 1 = led1Green = led2Green = led3Green = led4Green
+								Byte 1, Nibble 2 = led1Blue = led2Blue = led3Blue = led4Blue
+								Byte 2 = theAddress
+							*/
 							for (y=boardLEDy; y<boardLEDy+2; y++)
 							{
 								for (x=boardLEDx; x<boardLEDx+2; x++)
@@ -1161,6 +1196,69 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 								}
 							}
 				        break;
+
+    					case 8:
+							/* Update individual LEDs using 6-bit update
+								Byte 1 = led1Red;    Byte 2 = led1Green
+								Byte 3 = led1Blue;   Byte 4 = led2Red
+								Byte 5 = led2Green;  Byte 6 = led2Blue
+								Byte 7 = led3Red;    Byte 8 = led3Green
+								Byte 9 = led3Blue;   Byte 10 = led4Red
+								Byte 11 = led4Green; Byte 12 = led4Blue
+								Byte 13 = theAddress
+							*/
+							ledValue[boardLEDx][boardLEDy][0] = (Char2Num(argv[2][2]) << 4) + Char2Num(argv[2][3]);
+							ledValue[boardLEDx][boardLEDy][1] = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]);
+							ledValue[boardLEDx][boardLEDy][2] = (Char2Num(argv[2][6]) << 4) + Char2Num(argv[2][7]);
+							ledValue[boardLEDx+1][boardLEDy][0] = (Char2Num(argv[2][8]) << 4) + Char2Num(argv[2][9]);
+							ledValue[boardLEDx+1][boardLEDy][1] = (Char2Num(argv[2][10]) << 4) + Char2Num(argv[2][11]);
+							ledValue[boardLEDx+1][boardLEDy][2] = (Char2Num(argv[2][12]) << 4) + Char2Num(argv[2][13]);
+							ledValue[boardLEDx][boardLEDy+1][0] = (Char2Num(argv[2][14]) << 4) + Char2Num(argv[2][15]);
+							ledValue[boardLEDx][boardLEDy+1][1] = (Char2Num(argv[2][16]) << 4) + Char2Num(argv[2][17]);
+							ledValue[boardLEDx][boardLEDy+1][2] = (Char2Num(argv[2][18]) << 4) + Char2Num(argv[2][19]);
+							ledValue[boardLEDx+1][boardLEDy+1][0] = (Char2Num(argv[2][20]) << 4) + Char2Num(argv[2][21]);
+							ledValue[boardLEDx+1][boardLEDy+1][1] = (Char2Num(argv[2][22]) << 4) + Char2Num(argv[2][23]);
+							ledValue[boardLEDx+1][boardLEDy+1][2] = (Char2Num(argv[2][24]) << 4) + Char2Num(argv[2][25]);
+				        break;
+
+    					case 9:
+							/* Update all LEDs using 6-bit update
+								Byte 1 = led1Red = led2Red = led3Red = led4Red
+								Byte 2 = led1Green = led2Green = led3Green = led4Green
+								Byte 3 = led1Blue = led2Blue = led3Blue = led4Blue
+								Byte 4 = theAddress
+							*/
+							for (y=boardLEDy; y<boardLEDy+2; y++)
+							{
+								for (x=boardLEDx; x<boardLEDx+2; x++)
+								{
+									ledValue[x][y][0] = (Char2Num(argv[2][2]) << 4) + Char2Num(argv[2][3]);
+									ledValue[x][y][1] = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]);
+									ledValue[x][y][2] = (Char2Num(argv[2][6]) << 4) + Char2Num(argv[2][7]);
+								}
+							}
+				        break;
+					}
+
+					// If the address byte was 0xFF, then we want to copy the
+					// values from the first board to the other 3
+					if (var == CMD_LEDOUTALL)
+					{
+						for (y=boardLEDy; y<boardLEDy+2; y++)
+						{
+							for (x=boardLEDx; x<boardLEDx+2; x++)
+							{
+								ledValue[x+2][y][0] = ledValue[x][y][0];
+								ledValue[x+2][y][1] = ledValue[x][y][1];
+								ledValue[x+2][y][2] = ledValue[x][y][2];
+								ledValue[x][y+2][0] = ledValue[x][y][0];
+								ledValue[x][y+2][1] = ledValue[x][y][1];
+								ledValue[x][y+2][2] = ledValue[x][y][2];
+								ledValue[x+2][y+2][0] = ledValue[x][y][0];
+								ledValue[x+2][y+2][1] = ledValue[x][y][1];
+								ledValue[x+2][y+2][2] = ledValue[x][y][2];
+							}
+						}
 					}
 				}
 				else
@@ -1416,8 +1514,8 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
 						colorDigit[1] = ((nibble < 10) ? ('0' + nibble) : ('A' + nibble - 10));
 						colorDigit[2] = '\0';
 						strcat(VarString, colorDigit);
-						if (c != 2)
-							strcatpgm2ram(VarString, (rom char *)",\0");
+						//if (c != 2)
+						//	strcatpgm2ram(VarString, (rom char *)",\0");
 					}
 					if (x != 3)
 						strcatpgm2ram(VarString, (rom char *)" \0");
