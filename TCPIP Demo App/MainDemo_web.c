@@ -86,18 +86,23 @@
 
 // These headers must be included for required defs.
 #include "TCPIP Stack/TCPIP.h"
-#include "test.h" // Olimex board test routines
+#if defined(__DEBUG)
+	#include "test.h" // Olimex board test routines
+#endif
 
 
 // This is used by other stack elements.
 // Main application must define this and initialize it with proper values.
 APP_CONFIG AppConfig;
 BYTE AN0String[8];
+BYTE AN1String[8];
 BYTE TEMPString[8];
 BYTE tempCurrent = 0;
 BYTE tempOld = 0;
-BYTE ledValue[4][4][3];
 #define STACK_USE_LED_BOARDS
+#if defined(STACK_USE_LED_BOARDS)
+	BYTE ledValue[4][4][3];
+#endif
 int secondsPassed = 0;
 BYTE myDHCPBindCount = 0xFF;
 
@@ -577,7 +582,7 @@ static void ProcessIO(void)
     /*
      * Convert 10-bit value into ASCII String.
      */
-    // itoa(ADCResult.Val, AN1String);
+    itoa(ADCResult.Val, AN1String);
 	itoa(temp, TEMPString);
 	
 
@@ -872,6 +877,7 @@ static void PingDemo(void)
 #define VAR_LED7			(0x15)
 #define VAR_ANAIN_AN0       (0x02)	// Analog Inputs (POT, temp, etc)
 #define VAR_ANAIN_AN1       (0x03)
+#define VAR_TEMP		    (0x18)
 #define VAR_DIGIN0       	(0x04)	// Momentary push button inputs
 #define VAR_DIGIN1       	(0x0D)
 #define VAR_DIGIN2       	(0x0E)
@@ -891,6 +897,22 @@ static void PingDemo(void)
 #define VAR_LEDVALUES1		(0x21)  // LED Values for Board 1
 #define VAR_LEDVALUES2		(0x22)  // LED Values for Board 2
 #define VAR_LEDVALUES3		(0x23)  // LED Values for Board 3
+#define VAR_LEDVALUES00		(0x40)  // LED Value 0 for Board 0
+#define VAR_LEDVALUES01		(0x41)  // LED Value 1 for Board 0
+#define VAR_LEDVALUES02		(0x42)  // LED Value 2 for Board 0
+#define VAR_LEDVALUES03		(0x43)  // LED Value 3 for Board 0
+#define VAR_LEDVALUES10		(0x50)  // LED Value 0 for Board 0
+#define VAR_LEDVALUES11		(0x51)  // LED Value 1 for Board 0
+#define VAR_LEDVALUES12		(0x52)  // LED Value 2 for Board 0
+#define VAR_LEDVALUES13		(0x53)  // LED Value 3 for Board 0
+#define VAR_LEDVALUES20		(0x60)  // LED Value 0 for Board 0
+#define VAR_LEDVALUES21		(0x61)  // LED Value 1 for Board 0
+#define VAR_LEDVALUES22		(0x62)  // LED Value 2 for Board 0
+#define VAR_LEDVALUES23		(0x63)  // LED Value 3 for Board 0
+#define VAR_LEDVALUES30		(0x70)  // LED Value 0 for Board 0
+#define VAR_LEDVALUES31		(0x71)  // LED Value 1 for Board 0
+#define VAR_LEDVALUES32		(0x72)  // LED Value 2 for Board 0
+#define VAR_LEDVALUES33		(0x73)  // LED Value 3 for Board 0
 
 
 // CGI Command codes (CGI_CMD_DIGOUT).
@@ -1165,18 +1187,18 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 								Byte 6, Nibble 1 = led4Green; Byte 6, Nibble 2 = led4Blue
 								Byte 7 = theAddress
 							*/
-							ledValue[boardLEDx][boardLEDy][0] = Char2Num(argv[2][2]);
-							ledValue[boardLEDx][boardLEDy][1] = Char2Num(argv[2][3]);
-							ledValue[boardLEDx][boardLEDy][2] = Char2Num(argv[2][4]);
-							ledValue[boardLEDx+1][boardLEDy][0] = Char2Num(argv[2][5]);
-							ledValue[boardLEDx+1][boardLEDy][1] = Char2Num(argv[2][6]);
-							ledValue[boardLEDx+1][boardLEDy][2] = Char2Num(argv[2][7]);
-							ledValue[boardLEDx][boardLEDy+1][0] = Char2Num(argv[2][8]);
-							ledValue[boardLEDx][boardLEDy+1][1] = Char2Num(argv[2][9]);
-							ledValue[boardLEDx][boardLEDy+1][2] = Char2Num(argv[2][10]);
-							ledValue[boardLEDx+1][boardLEDy+1][0] = Char2Num(argv[2][11]);
-							ledValue[boardLEDx+1][boardLEDy+1][1] = Char2Num(argv[2][12]);
-							ledValue[boardLEDx+1][boardLEDy+1][2] = Char2Num(argv[2][13]);
+							ledValue[boardLEDx][boardLEDy][0] = Char2Num(argv[2][2]) << 4;
+							ledValue[boardLEDx][boardLEDy][1] = Char2Num(argv[2][3]) << 4;
+							ledValue[boardLEDx][boardLEDy][2] = Char2Num(argv[2][4]) << 4;
+							ledValue[boardLEDx+1][boardLEDy][0] = Char2Num(argv[2][5]) << 4;
+							ledValue[boardLEDx+1][boardLEDy][1] = Char2Num(argv[2][6]) << 4;
+							ledValue[boardLEDx+1][boardLEDy][2] = Char2Num(argv[2][7]) << 4;
+							ledValue[boardLEDx][boardLEDy+1][0] = Char2Num(argv[2][8]) << 4;
+							ledValue[boardLEDx][boardLEDy+1][1] = Char2Num(argv[2][9]) << 4;
+							ledValue[boardLEDx][boardLEDy+1][2] = Char2Num(argv[2][10]) << 4;
+							ledValue[boardLEDx+1][boardLEDy+1][0] = Char2Num(argv[2][11]) << 4;
+							ledValue[boardLEDx+1][boardLEDy+1][1] = Char2Num(argv[2][12]) << 4;
+							ledValue[boardLEDx+1][boardLEDy+1][2] = Char2Num(argv[2][13]) << 4;
 				        break;
 
     					case 2:
@@ -1190,9 +1212,9 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 							{
 								for (x=boardLEDx; x<boardLEDx+2; x++)
 								{
-									ledValue[x][y][0] = Char2Num(argv[2][1]);
-									ledValue[x][y][1] = Char2Num(argv[2][2]);
-									ledValue[x][y][2] = Char2Num(argv[2][3]);
+									ledValue[x][y][0] = Char2Num(argv[2][1]) << 4;
+									ledValue[x][y][1] = Char2Num(argv[2][2]) << 4;
+									ledValue[x][y][2] = Char2Num(argv[2][3]) << 4;
 								}
 							}
 				        break;
@@ -1207,18 +1229,18 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 								Byte 11 = led4Green; Byte 12 = led4Blue
 								Byte 13 = theAddress
 							*/
-							ledValue[boardLEDx][boardLEDy][0] = (Char2Num(argv[2][2]) << 4) + Char2Num(argv[2][3]);
-							ledValue[boardLEDx][boardLEDy][1] = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]);
-							ledValue[boardLEDx][boardLEDy][2] = (Char2Num(argv[2][6]) << 4) + Char2Num(argv[2][7]);
-							ledValue[boardLEDx+1][boardLEDy][0] = (Char2Num(argv[2][8]) << 4) + Char2Num(argv[2][9]);
-							ledValue[boardLEDx+1][boardLEDy][1] = (Char2Num(argv[2][10]) << 4) + Char2Num(argv[2][11]);
-							ledValue[boardLEDx+1][boardLEDy][2] = (Char2Num(argv[2][12]) << 4) + Char2Num(argv[2][13]);
-							ledValue[boardLEDx][boardLEDy+1][0] = (Char2Num(argv[2][14]) << 4) + Char2Num(argv[2][15]);
-							ledValue[boardLEDx][boardLEDy+1][1] = (Char2Num(argv[2][16]) << 4) + Char2Num(argv[2][17]);
-							ledValue[boardLEDx][boardLEDy+1][2] = (Char2Num(argv[2][18]) << 4) + Char2Num(argv[2][19]);
-							ledValue[boardLEDx+1][boardLEDy+1][0] = (Char2Num(argv[2][20]) << 4) + Char2Num(argv[2][21]);
-							ledValue[boardLEDx+1][boardLEDy+1][1] = (Char2Num(argv[2][22]) << 4) + Char2Num(argv[2][23]);
-							ledValue[boardLEDx+1][boardLEDy+1][2] = (Char2Num(argv[2][24]) << 4) + Char2Num(argv[2][25]);
+							ledValue[boardLEDx][boardLEDy][0] = (Char2Num(argv[2][2]) << 4) + Char2Num(argv[2][3]) << 2;
+							ledValue[boardLEDx][boardLEDy][1] = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]) << 2;
+							ledValue[boardLEDx][boardLEDy][2] = (Char2Num(argv[2][6]) << 4) + Char2Num(argv[2][7]) << 2;
+							ledValue[boardLEDx+1][boardLEDy][0] = (Char2Num(argv[2][8]) << 4) + Char2Num(argv[2][9]) << 2;
+							ledValue[boardLEDx+1][boardLEDy][1] = (Char2Num(argv[2][10]) << 4) + Char2Num(argv[2][11]) << 2;
+							ledValue[boardLEDx+1][boardLEDy][2] = (Char2Num(argv[2][12]) << 4) + Char2Num(argv[2][13]) << 2;
+							ledValue[boardLEDx][boardLEDy+1][0] = (Char2Num(argv[2][14]) << 4) + Char2Num(argv[2][15]) << 2;
+							ledValue[boardLEDx][boardLEDy+1][1] = (Char2Num(argv[2][16]) << 4) + Char2Num(argv[2][17]) << 2;
+							ledValue[boardLEDx][boardLEDy+1][2] = (Char2Num(argv[2][18]) << 4) + Char2Num(argv[2][19]) << 2;
+							ledValue[boardLEDx+1][boardLEDy+1][0] = (Char2Num(argv[2][20]) << 4) + Char2Num(argv[2][21]) << 2;
+							ledValue[boardLEDx+1][boardLEDy+1][1] = (Char2Num(argv[2][22]) << 4) + Char2Num(argv[2][23]) << 2;
+							ledValue[boardLEDx+1][boardLEDy+1][2] = (Char2Num(argv[2][24]) << 4) + Char2Num(argv[2][25]) << 2;
 				        break;
 
     					case 9:
@@ -1232,9 +1254,9 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 							{
 								for (x=boardLEDx; x<boardLEDx+2; x++)
 								{
-									ledValue[x][y][0] = (Char2Num(argv[2][2]) << 4) + Char2Num(argv[2][3]);
-									ledValue[x][y][1] = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]);
-									ledValue[x][y][2] = (Char2Num(argv[2][6]) << 4) + Char2Num(argv[2][7]);
+									ledValue[x][y][0] = (Char2Num(argv[2][2]) << 4) + Char2Num(argv[2][3]) << 2;
+									ledValue[x][y][1] = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]) << 2;
+									ledValue[x][y][2] = (Char2Num(argv[2][6]) << 4) + Char2Num(argv[2][7]) << 2;
 								}
 							}
 				        break;
@@ -1348,7 +1370,6 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
         *val = LED0_IO ? '1':'0';
         break;
 
-
     case VAR_ANAIN_AN0:
         *val = AN0String[(BYTE)ref];
         if(AN0String[(BYTE)ref] == '\0')
@@ -1357,7 +1378,15 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
             return HTTP_END_OF_VAR;
         return ref;
 
-		case VAR_ANAIN_AN1:
+    case VAR_ANAIN_AN1:
+        *val = AN1String[(BYTE)ref];
+        if(AN1String[(BYTE)ref] == '\0')
+            return HTTP_END_OF_VAR;
+		else if(AN1String[(BYTE)++ref] == '\0' )
+            return HTTP_END_OF_VAR;
+        return ref;
+
+	case VAR_TEMP:
         *val = TEMPString[(BYTE)ref];
         if(TEMPString[(BYTE)ref] == '\0')
             return HTTP_END_OF_VAR;
@@ -1380,6 +1409,7 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
 		else if(VarString[(BYTE)++ref] == '\0' )
             return HTTP_END_OF_VAR;
         return ref;
+
 	case VAR_STACK_DATE:
         if(ref == HTTP_START_OF_VAR)
 		{
@@ -1485,20 +1515,46 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
 	case VAR_LEDVALUES1:
 	case VAR_LEDVALUES2:
 	case VAR_LEDVALUES3:
+	case VAR_LEDVALUES00:
+	case VAR_LEDVALUES01:
+	case VAR_LEDVALUES02:
+	case VAR_LEDVALUES03:
+	case VAR_LEDVALUES10:
+	case VAR_LEDVALUES11:
+	case VAR_LEDVALUES12:
+	case VAR_LEDVALUES13:
+	case VAR_LEDVALUES20:
+	case VAR_LEDVALUES21:
+	case VAR_LEDVALUES22:
+	case VAR_LEDVALUES23:
+	case VAR_LEDVALUES30:
+	case VAR_LEDVALUES31:
+	case VAR_LEDVALUES32:
+	case VAR_LEDVALUES33:
         if(ref == HTTP_START_OF_VAR)
 		{
-			if (var == VAR_LEDVALUES0) {
-				xMin = 0; xMax = 2;
-				yMin = 0; yMax = 2;
-			} else if (var == VAR_LEDVALUES1) {
-				xMin = 2; xMax = 4;
-				yMin = 0; yMax = 2;
-			} else if (var == VAR_LEDVALUES2) {
-				xMin = 0; xMax = 2;
-				yMin = 2; yMax = 4;
-			} else if (var == VAR_LEDVALUES3) {
-				xMin = 2; xMax = 4;
-				yMin = 2; yMax = 4;
+			switch(var)
+    		{
+				case VAR_LEDVALUES0:	xMin = 0; xMax = 2; yMin = 0; yMax = 2; break;
+				case VAR_LEDVALUES1:	xMin = 2; xMax = 4; yMin = 0; yMax = 2; break;
+				case VAR_LEDVALUES2:	xMin = 0; xMax = 2; yMin = 2; yMax = 4; break;
+				case VAR_LEDVALUES3:	xMin = 2; xMax = 4; yMin = 2; yMax = 4; break;
+				case VAR_LEDVALUES00:	xMin = 0; xMax = 1; yMin = 0; yMax = 1; break;
+				case VAR_LEDVALUES01:	xMin = 1; xMax = 2; yMin = 0; yMax = 1; break;
+				case VAR_LEDVALUES02:	xMin = 0; xMax = 1; yMin = 1; yMax = 2; break;
+				case VAR_LEDVALUES03:	xMin = 1; xMax = 2; yMin = 1; yMax = 2; break;
+				case VAR_LEDVALUES10:	xMin = 2; xMax = 3; yMin = 0; yMax = 1; break;
+				case VAR_LEDVALUES11:	xMin = 3; xMax = 4; yMin = 0; yMax = 1; break;
+				case VAR_LEDVALUES12:	xMin = 2; xMax = 3; yMin = 1; yMax = 2; break;
+				case VAR_LEDVALUES13:	xMin = 3; xMax = 4; yMin = 1; yMax = 2; break;
+				case VAR_LEDVALUES20:	xMin = 0; xMax = 1; yMin = 2; yMax = 3; break;
+				case VAR_LEDVALUES21:	xMin = 1; xMax = 2; yMin = 2; yMax = 3; break;
+				case VAR_LEDVALUES22:	xMin = 0; xMax = 1; yMin = 3; yMax = 4; break;
+				case VAR_LEDVALUES23:	xMin = 1; xMax = 2; yMin = 3; yMax = 4; break;
+				case VAR_LEDVALUES30:	xMin = 2; xMax = 3; yMin = 2; yMax = 3; break;
+				case VAR_LEDVALUES31:	xMin = 3; xMax = 4; yMin = 2; yMax = 3; break;
+				case VAR_LEDVALUES32:	xMin = 2; xMax = 3; yMin = 3; yMax = 4; break;
+				case VAR_LEDVALUES33:	xMin = 3; xMax = 4; yMin = 3; yMax = 4; break;
 			}
 			VarString[0] = '\0';
 			for (y=yMin; y<yMax; y++)
@@ -1517,10 +1573,10 @@ WORD HTTPGetVar(BYTE var, WORD ref, BYTE* val)
 						//if (c != 2)
 						//	strcatpgm2ram(VarString, (rom char *)",\0");
 					}
-					if (x != 3)
-						strcatpgm2ram(VarString, (rom char *)" \0");
+					//if ((x != 3) & 
+					//	strcatpgm2ram(VarString, (rom char *)" \0");
 				}
-				strcatpgm2ram(VarString, (rom char *)"<BR>\0");
+				//strcatpgm2ram(VarString, (rom char *)"<BR>\0");
 			}
 		}
         *val = VarString[(BYTE)ref];

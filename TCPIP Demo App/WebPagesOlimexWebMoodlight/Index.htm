@@ -154,14 +154,24 @@
 						</td>
 					</tr>
 					<tr>
-						<td>Toggle outputs:</td>
+						<td>Toggle Onboard LED:</td>
 						<td>
 							<input type="button" value="LD1" onClick="GetServerFile('0?0=LED1','')"></input>
 					</td>
 					<tr>
-						<td>Toggle LEDS0:</td>
+						<td>Set LEDS Red:</td>
 						<td>
-							<input type="button" value="LEDS" onClick="GetServerFile('3?0=10900900900900FF','')"></input>
+							<input type="button" value="LEDS" onClick="GetServerFile('3?0=2F00FF','')"></input>
+					</td>
+					<tr>
+						<td>Set LEDS Green:</td>
+						<td>
+							<input type="button" value="LEDS" onClick="GetServerFile('3?0=20F0FF','')"></input>
+					</td>
+					<tr>
+						<td>Set LEDS Blue:</td>
+						<td>
+							<input type="button" value="LEDS" onClick="GetServerFile('3?0=200FFF','')"></input>
 					</td>
 				</tr>
 			</form>
