@@ -4,30 +4,39 @@
 		<b>Microchip TCP/IP Stack</b><br>
 		Stack version: %16<br>
 		Build date: %17<br>
-		<br>
+		<P>
+		<b>Actions</b><br>
 		<form method="get" action="0">
-			<b>Actions</b><br>
-			Toggle RELAYs:<br>
-			<input type="submit" name="1" value="RELAY2"></input>
-			<input type="submit" name="0" value="RELAY1"></input>
+			Toggle Onboad LED:
+			<input type="submit" name="0" value="LED0"></input>
 		</form>
-		<form method="get" action="1">
-			Write to LCD:
-			<input type="text" name="3" size="16"></input>
-			<input type="submit" value="Write"></input>
-		</form><br>
 		<form method="get" action="3">
 			Write to LEDS:
 			<input type="text" name="0" size="16"></input>
-			<input type="submit" value="Write"></input>
-		</form><br>
-		<b>Status</b><br>
+			<input type="submit" value="Submit"></input>
+		</form>
+		</P>
+		<P>
+		<b>Example strings:</b>:<br>
+			All Red 10900900900900FF<br>
+			All Red 2F00FF<br>
+			All Green 10090090090090FF<br>
+			All Green 20F0FF<br>
+			All Blue 10009009009009FF<br>
+			All Blue 200FFF<br>
+			Red Green Blue White 2F000120F002200F032FFF04<br>
+			Rainbow 10F00A50A00A5501105A00F05A50A50210500555000005031055A05A00A00F04
+		</P>
+		<P>
+		<b>Status</b>:<br>
 		AN0: %02<br>
 		AN1: %03<br>
 		Temp: %18<br>
 		Button1: %04<br>
-		LED Board:<br>
-		<table cellpadding="3">
+		</P>
+		<P>
+		<b>LED Board:</b><br>
+		<table cellpadding="0">
 			<tr>
 				<td>
 					<table cellpadding="3">
@@ -81,60 +90,61 @@
 				</td>
 			</tr>
 		</table>
-		<BR>
-		<table cellpadding="3">
+		<BR><b>LED Board Representation:</b><BR>
+		<table cellpadding="0" bgcolor="#000000">
 			<tr>
 				<td>
-					<table cellpadding="3">
+					<table cellpadding="0">
 						<tr>
-							<td bgcolor="#%40">&nbsp;</td>
-							<td bgcolor="#%41">&nbsp;</td>
+							<td bgcolor="#%40"><img src="LEDb.png" width="25" height="25"></img></td>
+							<td bgcolor="#%41"><img src="LEDb.png" width="25" height="25"></img></td>
 						</tr>
 						<tr>
-							<td bgcolor="#%42">&nbsp;</td>
-							<td bgcolor="#%43">&nbsp;</td>
+							<td bgcolor="#%42"><img src="LEDb.png" width="25" height="25"></img></td>
+							<td bgcolor="#%43"><img src="LEDb.png" width="25" height="25"></img></td>
 						</tr>
 					</table>
 				</td>
 				<td>
-					<table cellpadding="3">
+					<table cellpadding="0">
 						<tr>
-							<td bgcolor="#%50">&nbsp;</td>
-							<td bgcolor="#%51">&nbsp;</td>
+							<td bgcolor="#%50"><img src="LEDb.png" width="25" height="25"></img></td>
+							<td bgcolor="#%51"><img src="LEDb.png" width="25" height="25"></img></td>
 						</tr>
 						<tr>
-							<td bgcolor="#%52">&nbsp;</td>
-							<td bgcolor="#%53">&nbsp;</td>
+							<td bgcolor="#%52"><img src="LEDb.png" width="25" height="25"></img></td>
+							<td bgcolor="#%53"><img src="LEDb.png" width="25" height="25"></img></td>
 						</tr>
 					</table>
 				</td>
 			</tr>
 			<tr>
 				<td>
-					<table cellpadding="3">
+					<table cellpadding="0">
 						<tr>
-							<td bgcolor="#%60">&nbsp;</td>
-							<td bgcolor="#%61">&nbsp;</td>
+							<td bgcolor="#%60"><img src="LEDb.png" width="25" height="25"></img></td>
+							<td bgcolor="#%61"><img src="LEDb.png" width="25" height="25"></img></td>
 						</tr>
 						<tr>
-							<td bgcolor="#%62">&nbsp;</td>
-							<td bgcolor="#%63">&nbsp;</td>
+							<td bgcolor="#%62"><img src="LEDb.png" width="25" height="25"></img></td>
+							<td bgcolor="#%63"><img src="LEDb.png" width="25" height="25"></img></td>
 						</tr>
 					</table>
 				</td>
 				<td>
-					<table cellpadding="3">
+					<table cellpadding="0">
 						<tr>
-							<td bgcolor="#%70">&nbsp;</td>
-							<td bgcolor="#%71">&nbsp;</td>
+							<td bgcolor="#%70"><img src="LEDb.png" width="25" height="25"></img></td>
+							<td bgcolor="#%71"><img src="LEDb.png" width="25" height="25"></img></td>
 						</tr>
 						<tr>
-							<td bgcolor="#%72">&nbsp;</td>
-							<td bgcolor="#%73">&nbsp;</td>
+							<td bgcolor="#%72"><img src="LEDb.png" width="25" height="25"></img></td>
+							<td bgcolor="#%73"><img src="LEDb.png" width="25" height="25"></img></td>
 						</tr>
 					</table>
 				</td>
 			</tr>
-		</table><br>
+		</table>
+		</P>
 	</body>
 </html>
