@@ -984,7 +984,7 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 	    BYTE CurrentArg;
 	    WORD_VAL TmpWord;
 	#endif
-	BYTE x, y, c, boardLEDx, boardLEDy;
+	BYTE x, y, c, boardLEDx, boardLEDy, LEDPointer;
     /*
      * Design your pages such that they contain command code
      * as a one character numerical value.
@@ -1143,148 +1143,168 @@ void HTTPExecCmd(BYTE** argv, BYTE argc)
 					c=c+2;
 				};
 
-				if(strlen((char*)argv[2]) < 32u)
+				LEDPointer = 0;
+				if(strlen((char*)argv[2]) <= 64u)
 				{
-					switch(Char2Num(argv[2][0]))
-    				{
-    					case 1:
-							var = (Char2Num(argv[2][14]) << 4) + Char2Num(argv[2][15]);
-						break;
-    					case 2:
-							var = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]);
-						break;
-    					case 8:
-							var = (Char2Num(argv[2][26]) << 4) + Char2Num(argv[2][27]);
-						break;
-    					case 9:
-							var = (Char2Num(argv[2][8]) << 4) + Char2Num(argv[2][9]);
-						break;
-					}
-
-					switch(var)
+					while(argv[2][LEDPointer] != '\0')
 					{
-						case CMD_LEDOUT1:
-							boardLEDx = 0; boardLEDy = 0;
-						break;
-						case CMD_LEDOUT2:
-							boardLEDx = 2; boardLEDy = 0;
-						break;
-						case CMD_LEDOUT3:
-							boardLEDx = 0; boardLEDy = 2;
-						break;
-						case CMD_LEDOUT4:
-							boardLEDx = 2; boardLEDy = 2;
-						break;
-						case CMD_LEDOUTALL:
-							boardLEDx = 0; boardLEDy = 0;
-						break;
-					}
-
-					switch(Char2Num(argv[2][0]))
-    				{
-    					case 1:
-							/*Update individual LEDs using 4-bit exponential update
-								Byte 1, Nibble 1 = led1Red;   Byte 1, Nibble 2 = led1Green
-								Byte 2, Nibble 1 = led1Blue;  Byte 2, Nibble 2 = led2Red
-								Byte 3, Nibble 1 = led2Green; Byte 3, Nibble 2 = led2Blue
-								Byte 4, Nibble 1 = led3Red;   Byte 4, Nibble 2 = led3Green
-								Byte 5, Nibble 1 = led3Blue;  Byte 5, Nibble 2 = led4Red
-								Byte 6, Nibble 1 = led4Green; Byte 6, Nibble 2 = led4Blue
-								Byte 7 = theAddress
-							*/
-							ledValue[boardLEDx][boardLEDy][0] = Char2Num(argv[2][2]) << 4;
-							ledValue[boardLEDx][boardLEDy][1] = Char2Num(argv[2][3]) << 4;
-							ledValue[boardLEDx][boardLEDy][2] = Char2Num(argv[2][4]) << 4;
-							ledValue[boardLEDx+1][boardLEDy][0] = Char2Num(argv[2][5]) << 4;
-							ledValue[boardLEDx+1][boardLEDy][1] = Char2Num(argv[2][6]) << 4;
-							ledValue[boardLEDx+1][boardLEDy][2] = Char2Num(argv[2][7]) << 4;
-							ledValue[boardLEDx][boardLEDy+1][0] = Char2Num(argv[2][8]) << 4;
-							ledValue[boardLEDx][boardLEDy+1][1] = Char2Num(argv[2][9]) << 4;
-							ledValue[boardLEDx][boardLEDy+1][2] = Char2Num(argv[2][10]) << 4;
-							ledValue[boardLEDx+1][boardLEDy+1][0] = Char2Num(argv[2][11]) << 4;
-							ledValue[boardLEDx+1][boardLEDy+1][1] = Char2Num(argv[2][12]) << 4;
-							ledValue[boardLEDx+1][boardLEDy+1][2] = Char2Num(argv[2][13]) << 4;
-				        break;
-
-    					case 2:
-							/*Update all LEDs using 4-bit exponential update
-								Byte 0, Nibble 2 = led1Red = led2Red = led3Red = led4Red
-								Byte 1, Nibble 1 = led1Green = led2Green = led3Green = led4Green
-								Byte 1, Nibble 2 = led1Blue = led2Blue = led3Blue = led4Blue
-								Byte 2 = theAddress
-							*/
-							for (y=boardLEDy; y<boardLEDy+2; y++)
-							{
-								for (x=boardLEDx; x<boardLEDx+2; x++)
-								{
-									ledValue[x][y][0] = Char2Num(argv[2][1]) << 4;
-									ledValue[x][y][1] = Char2Num(argv[2][2]) << 4;
-									ledValue[x][y][2] = Char2Num(argv[2][3]) << 4;
-								}
-							}
-				        break;
-
-    					case 8:
-							/* Update individual LEDs using 6-bit update
-								Byte 1 = led1Red;    Byte 2 = led1Green
-								Byte 3 = led1Blue;   Byte 4 = led2Red
-								Byte 5 = led2Green;  Byte 6 = led2Blue
-								Byte 7 = led3Red;    Byte 8 = led3Green
-								Byte 9 = led3Blue;   Byte 10 = led4Red
-								Byte 11 = led4Green; Byte 12 = led4Blue
-								Byte 13 = theAddress
-							*/
-							ledValue[boardLEDx][boardLEDy][0] = (Char2Num(argv[2][2]) << 4) + Char2Num(argv[2][3]) << 2;
-							ledValue[boardLEDx][boardLEDy][1] = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]) << 2;
-							ledValue[boardLEDx][boardLEDy][2] = (Char2Num(argv[2][6]) << 4) + Char2Num(argv[2][7]) << 2;
-							ledValue[boardLEDx+1][boardLEDy][0] = (Char2Num(argv[2][8]) << 4) + Char2Num(argv[2][9]) << 2;
-							ledValue[boardLEDx+1][boardLEDy][1] = (Char2Num(argv[2][10]) << 4) + Char2Num(argv[2][11]) << 2;
-							ledValue[boardLEDx+1][boardLEDy][2] = (Char2Num(argv[2][12]) << 4) + Char2Num(argv[2][13]) << 2;
-							ledValue[boardLEDx][boardLEDy+1][0] = (Char2Num(argv[2][14]) << 4) + Char2Num(argv[2][15]) << 2;
-							ledValue[boardLEDx][boardLEDy+1][1] = (Char2Num(argv[2][16]) << 4) + Char2Num(argv[2][17]) << 2;
-							ledValue[boardLEDx][boardLEDy+1][2] = (Char2Num(argv[2][18]) << 4) + Char2Num(argv[2][19]) << 2;
-							ledValue[boardLEDx+1][boardLEDy+1][0] = (Char2Num(argv[2][20]) << 4) + Char2Num(argv[2][21]) << 2;
-							ledValue[boardLEDx+1][boardLEDy+1][1] = (Char2Num(argv[2][22]) << 4) + Char2Num(argv[2][23]) << 2;
-							ledValue[boardLEDx+1][boardLEDy+1][2] = (Char2Num(argv[2][24]) << 4) + Char2Num(argv[2][25]) << 2;
-				        break;
-
-    					case 9:
-							/* Update all LEDs using 6-bit update
-								Byte 1 = led1Red = led2Red = led3Red = led4Red
-								Byte 2 = led1Green = led2Green = led3Green = led4Green
-								Byte 3 = led1Blue = led2Blue = led3Blue = led4Blue
-								Byte 4 = theAddress
-							*/
-							for (y=boardLEDy; y<boardLEDy+2; y++)
-							{
-								for (x=boardLEDx; x<boardLEDx+2; x++)
-								{
-									ledValue[x][y][0] = (Char2Num(argv[2][2]) << 4) + Char2Num(argv[2][3]) << 2;
-									ledValue[x][y][1] = (Char2Num(argv[2][4]) << 4) + Char2Num(argv[2][5]) << 2;
-									ledValue[x][y][2] = (Char2Num(argv[2][6]) << 4) + Char2Num(argv[2][7]) << 2;
-								}
-							}
-				        break;
-					}
-
-					// If the address byte was 0xFF, then we want to copy the
-					// values from the first board to the other 3
-					if (var == CMD_LEDOUTALL)
-					{
-						for (y=boardLEDy; y<boardLEDy+2; y++)
+						switch(Char2Num(argv[2][LEDPointer+0]))
+	    				{
+	    					case 1:
+								var = (Char2Num(argv[2][LEDPointer+14]) << 4) + Char2Num(argv[2][LEDPointer+15]);
+							break;
+	    					case 2:
+								var = (Char2Num(argv[2][LEDPointer+4]) << 4) + Char2Num(argv[2][LEDPointer+5]);
+							break;
+	    					case 8:
+								var = (Char2Num(argv[2][LEDPointer+26]) << 4) + Char2Num(argv[2][LEDPointer+27]);
+							break;
+	    					case 9:
+								var = (Char2Num(argv[2][LEDPointer+8]) << 4) + Char2Num(argv[2][LEDPointer+9]);
+							break;
+						}
+	
+						switch(var)
 						{
-							for (x=boardLEDx; x<boardLEDx+2; x++)
+							case CMD_LEDOUT1:
+								boardLEDx = 0; boardLEDy = 0;
+							break;
+							case CMD_LEDOUT2:
+								boardLEDx = 2; boardLEDy = 0;
+							break;
+							case CMD_LEDOUT3:
+								boardLEDx = 0; boardLEDy = 2;
+							break;
+							case CMD_LEDOUT4:
+								boardLEDx = 2; boardLEDy = 2;
+							break;
+							case CMD_LEDOUTALL:
+								boardLEDx = 0; boardLEDy = 0;
+							break;
+						}
+	
+						switch(Char2Num(argv[2][LEDPointer+0]))
+	    				{
+	    					case 1:
+								/*Update individual LEDs using 4-bit exponential update
+									Byte 1, Nibble 1 = led1Red;   Byte 1, Nibble 2 = led1Green
+									Byte 2, Nibble 1 = led1Blue;  Byte 2, Nibble 2 = led2Red
+									Byte 3, Nibble 1 = led2Green; Byte 3, Nibble 2 = led2Blue
+									Byte 4, Nibble 1 = led3Red;   Byte 4, Nibble 2 = led3Green
+									Byte 5, Nibble 1 = led3Blue;  Byte 5, Nibble 2 = led4Red
+									Byte 6, Nibble 1 = led4Green; Byte 6, Nibble 2 = led4Blue
+									Byte 7 = theAddress
+								*/
+								ledValue[boardLEDx][boardLEDy][0] = Char2Num(argv[2][LEDPointer+2]) << 4;
+								ledValue[boardLEDx][boardLEDy][1] = Char2Num(argv[2][LEDPointer+3]) << 4;
+								ledValue[boardLEDx][boardLEDy][2] = Char2Num(argv[2][LEDPointer+4]) << 4;
+								ledValue[boardLEDx+1][boardLEDy][0] = Char2Num(argv[2][LEDPointer+5]) << 4;
+								ledValue[boardLEDx+1][boardLEDy][1] = Char2Num(argv[2][LEDPointer+6]) << 4;
+								ledValue[boardLEDx+1][boardLEDy][2] = Char2Num(argv[2][LEDPointer+7]) << 4;
+								ledValue[boardLEDx][boardLEDy+1][0] = Char2Num(argv[2][LEDPointer+8]) << 4;
+								ledValue[boardLEDx][boardLEDy+1][1] = Char2Num(argv[2][LEDPointer+9]) << 4;
+								ledValue[boardLEDx][boardLEDy+1][2] = Char2Num(argv[2][LEDPointer+10]) << 4;
+								ledValue[boardLEDx+1][boardLEDy+1][0] = Char2Num(argv[2][LEDPointer+11]) << 4;
+								ledValue[boardLEDx+1][boardLEDy+1][1] = Char2Num(argv[2][LEDPointer+12]) << 4;
+								ledValue[boardLEDx+1][boardLEDy+1][2] = Char2Num(argv[2][LEDPointer+13]) << 4;
+					        break;
+	
+	    					case 2:
+								/*Update all LEDs using 4-bit exponential update
+									Byte 0, Nibble 2 = led1Red = led2Red = led3Red = led4Red
+									Byte 1, Nibble 1 = led1Green = led2Green = led3Green = led4Green
+									Byte 1, Nibble 2 = led1Blue = led2Blue = led3Blue = led4Blue
+									Byte 2 = theAddress
+								*/
+								for (y=boardLEDy; y<boardLEDy+2; y++)
+								{
+									for (x=boardLEDx; x<boardLEDx+2; x++)
+									{
+										ledValue[x][y][0] = Char2Num(argv[2][LEDPointer+1]) << 4;
+										ledValue[x][y][1] = Char2Num(argv[2][LEDPointer+2]) << 4;
+										ledValue[x][y][2] = Char2Num(argv[2][LEDPointer+3]) << 4;
+									}
+								}
+					        break;
+	
+	    					case 8:
+								/* Update individual LEDs using 6-bit update
+									Byte 1 = led1Red;    Byte 2 = led1Green
+									Byte 3 = led1Blue;   Byte 4 = led2Red
+									Byte 5 = led2Green;  Byte 6 = led2Blue
+									Byte 7 = led3Red;    Byte 8 = led3Green
+									Byte 9 = led3Blue;   Byte 10 = led4Red
+									Byte 11 = led4Green; Byte 12 = led4Blue
+									Byte 13 = theAddress
+								*/
+								ledValue[boardLEDx][boardLEDy][0] = (Char2Num(argv[2][LEDPointer+2]) << 4) + Char2Num(argv[2][LEDPointer+3]) << 2;
+								ledValue[boardLEDx][boardLEDy][1] = (Char2Num(argv[2][LEDPointer+4]) << 4) + Char2Num(argv[2][LEDPointer+5]) << 2;
+								ledValue[boardLEDx][boardLEDy][2] = (Char2Num(argv[2][LEDPointer+6]) << 4) + Char2Num(argv[2][LEDPointer+7]) << 2;
+								ledValue[boardLEDx+1][boardLEDy][0] = (Char2Num(argv[2][LEDPointer+8]) << 4) + Char2Num(argv[2][LEDPointer+9]) << 2;
+								ledValue[boardLEDx+1][boardLEDy][1] = (Char2Num(argv[2][LEDPointer+10]) << 4) + Char2Num(argv[2][LEDPointer+11]) << 2;
+								ledValue[boardLEDx+1][boardLEDy][2] = (Char2Num(argv[2][LEDPointer+12]) << 4) + Char2Num(argv[2][LEDPointer+13]) << 2;
+								ledValue[boardLEDx][boardLEDy+1][0] = (Char2Num(argv[2][LEDPointer+14]) << 4) + Char2Num(argv[2][LEDPointer+15]) << 2;
+								ledValue[boardLEDx][boardLEDy+1][1] = (Char2Num(argv[2][LEDPointer+16]) << 4) + Char2Num(argv[2][LEDPointer+17]) << 2;
+								ledValue[boardLEDx][boardLEDy+1][2] = (Char2Num(argv[2][LEDPointer+18]) << 4) + Char2Num(argv[2][LEDPointer+19]) << 2;
+								ledValue[boardLEDx+1][boardLEDy+1][0] = (Char2Num(argv[2][LEDPointer+20]) << 4) + Char2Num(argv[2][LEDPointer+21]) << 2;
+								ledValue[boardLEDx+1][boardLEDy+1][1] = (Char2Num(argv[2][LEDPointer+22]) << 4) + Char2Num(argv[2][LEDPointer+23]) << 2;
+								ledValue[boardLEDx+1][boardLEDy+1][2] = (Char2Num(argv[2][LEDPointer+24]) << 4) + Char2Num(argv[2][LEDPointer+25]) << 2;
+					        break;
+	
+	    					case 9:
+								/* Update all LEDs using 6-bit update
+									Byte 1 = led1Red = led2Red = led3Red = led4Red
+									Byte 2 = led1Green = led2Green = led3Green = led4Green
+									Byte 3 = led1Blue = led2Blue = led3Blue = led4Blue
+									Byte 4 = theAddress
+								*/
+								for (y=boardLEDy; y<boardLEDy+2; y++)
+								{
+									for (x=boardLEDx; x<boardLEDx+2; x++)
+									{
+										ledValue[x][y][0] = (Char2Num(argv[2][LEDPointer+2]) << 4) + Char2Num(argv[2][LEDPointer+3]) << 2;
+										ledValue[x][y][1] = (Char2Num(argv[2][LEDPointer+4]) << 4) + Char2Num(argv[2][LEDPointer+5]) << 2;
+										ledValue[x][y][2] = (Char2Num(argv[2][LEDPointer+6]) << 4) + Char2Num(argv[2][LEDPointer+7]) << 2;
+									}
+								}
+					        break;
+						}
+	
+						// If the address byte was 0xFF, then we want to copy the
+						// values from the first board to the other 3
+						if (var == CMD_LEDOUTALL)
+						{
+							for (y=boardLEDy; y<boardLEDy+2; y++)
 							{
-								ledValue[x+2][y][0] = ledValue[x][y][0];
-								ledValue[x+2][y][1] = ledValue[x][y][1];
-								ledValue[x+2][y][2] = ledValue[x][y][2];
-								ledValue[x][y+2][0] = ledValue[x][y][0];
-								ledValue[x][y+2][1] = ledValue[x][y][1];
-								ledValue[x][y+2][2] = ledValue[x][y][2];
-								ledValue[x+2][y+2][0] = ledValue[x][y][0];
-								ledValue[x+2][y+2][1] = ledValue[x][y][1];
-								ledValue[x+2][y+2][2] = ledValue[x][y][2];
+								for (x=boardLEDx; x<boardLEDx+2; x++)
+								{
+									ledValue[x+2][y][0] = ledValue[x][y][0];
+									ledValue[x+2][y][1] = ledValue[x][y][1];
+									ledValue[x+2][y][2] = ledValue[x][y][2];
+									ledValue[x][y+2][0] = ledValue[x][y][0];
+									ledValue[x][y+2][1] = ledValue[x][y][1];
+									ledValue[x][y+2][2] = ledValue[x][y][2];
+									ledValue[x+2][y+2][0] = ledValue[x][y][0];
+									ledValue[x+2][y+2][1] = ledValue[x][y][1];
+									ledValue[x+2][y+2][2] = ledValue[x][y][2];
+								}
 							}
+						}
+	
+						switch(Char2Num(argv[2][LEDPointer+0]))
+	    				{
+	    					case 1:
+								LEDPointer = LEDPointer + 16;
+							break;
+	    					case 2:
+								LEDPointer = LEDPointer + 6;
+							break;
+	    					case 8:
+								LEDPointer = LEDPointer + 27;
+							break;
+	    					case 9:
+								LEDPointer = LEDPointer + 10;
+							break;
 						}
 					}
 				}

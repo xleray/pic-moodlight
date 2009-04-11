@@ -103,50 +103,20 @@
 
 	</head>
 	<body bgcolor="white" onLoad="UpdateStatus(); GetServerFile('Version.cgi','txtStackVersion'); GetServerFile('BuildDate.cgi','txtBuildDate');">
-
-		<table border="0" width="100%" height="87">
+    
+		<table cellpadding="3">
 			<tr>
-				<td height="83">
-					<img src="Olimex.gif" width="272" height="77"></img>
-							<b>
-						<font size="6" face="MS Sans Serif">
-							&nbsp;</font></b><font size="4" face="Arial Black">www.olimex.com/dev</font></td>
+				<td><b>Microchip TCP/IP Stack</b><br>
+                	Stack version: <span id="txtStackVersion">Unknown</span><br>
+					Build date: <span id="txtBuildDate">Unknown</span>
+                    <p>
+						If your browser does not support AJAX, you may wish to see <a href="Index.cgi">this page</a>
+                        for an easily refreshable static snapshot of the board state with control options.
+                    </p></td>
 			</tr>
 			<tr>
-				<td bgcolor="#000000">&nbsp;
-					</td>
+				<td>&nbsp;</td>
 			</tr>
-		</table>
-
-		<br>
-
-			<table border="0" cellpadding="0" cellspacing="0" width="100%">
-				<tr>
-					<td valign="top" width="100%">
-						<b>Welcome!</b>
-						<br>
-							Stack version: <span id="txtStackVersion">Unknown</span><br>
-								Build date: <span id="txtBuildDate">Unknown</span><br>
-
-									<p>
-									PIC-WEB development board is used to demonstrate the power and abilities of an 8-bit embedded web server.
-									This board is produced by Olimex Ltd.  
-									</p>
-									<p>
-										The bottom portion of this page illustrates real-time control of the demo board. The &quot;Status&quot;
-										section refreshes with board information periodically using JavaScript and the &quot;Actions&quot; 
-										section issues commands to toggle the on-board RELAYs or write text to LCD. You can push the on-board 
-										buttons or rotate the potentiometer and see the new data. You may also get current temperature.
-									</p>
-									<p>
-									If your browser does not support AJAX, you may wish to see <a href="Index.cgi">this page</a> for an easily refreshable 
-									static snapshot of the board state with control options.
-									</p>
-					</td>
-				</tr>
-			</table>
-
-			<table cellpadding="3">
 				<form>
 					<tr>
 						<td>
@@ -154,35 +124,18 @@
 						</td>
 					</tr>
 					<tr>
-						<td>Toggle Onboard LED:</td>
-						<td>
-							<input type="button" value="LD1" onClick="GetServerFile('0?0=LED1','')"></input>
-					</td>
-					<tr>
-						<td>Set LEDS Red:</td>
-						<td>
-							<input type="button" value="LEDS" onClick="GetServerFile('3?0=2F00FF','')"></input>
-					</td>
-					<tr>
-						<td>Set LEDS Green:</td>
-						<td>
-							<input type="button" value="LEDS" onClick="GetServerFile('3?0=20F0FF','')"></input>
-					</td>
-					<tr>
-						<td>Set LEDS Blue:</td>
-						<td>
-							<input type="button" value="LEDS" onClick="GetServerFile('3?0=200FFF','')"></input>
-					</td>
-				</tr>
-			</form>
-			<tr>
-				<td>&nbsp;</td>
-			</tr>
-			<tr>
-				<td>
-					<b>Status</b>
-				</td>
-			</tr>
+						<td>Toggle Onboard LED: <input type="button" value="LD1" onClick="GetServerFile('0?0=LED1','')"></input></td>
+					</tr>
+                    <tr>
+						<td>Set all LEDS Red: <input type="button" value="LEDS" onClick="GetServerFile('3?0=2F00FF','')"></input></td>
+					</tr>
+                    <tr>
+						<td>Set all LEDS Green: <input type="button" value="LEDS" onClick="GetServerFile('3?0=20F0FF','')"></input></td>
+					</tr>
+                    <tr>
+						<td>Set all LEDS Blue: <input type="button" value="LEDS" onClick="GetServerFile('3?0=200FFF','')"></input></td>
+					</tr>
+				</form>
 		</table>
 
 		<span id="txtAutoUpdateStatus">Loading...</span>
